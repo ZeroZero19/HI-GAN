@@ -1,9 +1,9 @@
+#!/usr/bin/env python
+
 import torch
 import torch.nn as nn
-from spectral_normalization import SpectralNorm
 import torch.nn.functional as F
-from torch.autograd import Variable
-import math
+
 
 # Generator Net
 class GNet(nn.Module):
@@ -25,7 +25,8 @@ class GNet(nn.Module):
 
         return out
 
-# BoostNet
+
+# Boost Net
 class BoostNet(nn.Module):
     def __init__(self, ):
         super(BoostNet, self).__init__()
@@ -47,7 +48,7 @@ class BoostNet(nn.Module):
         return out
 
 
-# MainNet
+# Sub classes
 class MainNet(nn.Module):
     def __init__(self, in_nc=12, out_nc=12):
         super(MainNet, self).__init__()
@@ -92,45 +93,6 @@ class MainNet(nn.Module):
         out = self.outc(conv4)
         return out
 
-class RDB(nn.Module):
-    def __init__(self, nChannels, nDenselayer, growthRate):
-        super(RDB, self).__init__()
-        nChannels_ = nChannels
-        modules = []
-        for i in range(nDenselayer):
-            modules.append(make_dense(nChannels_, growthRate))
-            nChannels_ += growthRate
-        self.dense_layers = nn.Sequential(*modules)
-        self.conv_1x1 = nn.Conv2d(nChannels_, nChannels, kernel_size=1, padding=0, bias=False)
-
-    def forward(self, x):
-        out = self.dense_layers(x)
-        out = self.conv_1x1(out)
-        out = out + x
-        return out
-
-class sub_pixel(nn.Module):
-    def __init__(self, scale, act=False):
-        super(sub_pixel, self).__init__()
-        modules = []
-        modules.append(nn.PixelShuffle(scale))
-        self.body = nn.Sequential(*modules)
-
-    def forward(self, x):
-        x = self.body(x)
-        return x
-
-class make_dense(nn.Module):
-    def __init__(self, nChannels, growthRate, kernel_size=3):
-        super(make_dense, self).__init__()
-        self.conv = nn.Conv2d(nChannels, growthRate, kernel_size=kernel_size, padding=(kernel_size - 1) // 2,
-                              bias=False)
-
-    def forward(self, x):
-        out = F.relu(self.conv(x))
-        out = torch.cat((x, out), 1)
-        return out
-
 class single_conv(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(single_conv, self).__init__()
@@ -170,27 +132,32 @@ class outconv(nn.Module):
         x = self.conv(x)
         return x
 
-# SubNet
-class FCN(nn.Module):
-    def __init__(self):
-        super(FCN, self).__init__()
-        self.inc = nn.Sequential(
-            nn.Conv2d(3, 32, 3, padding=1),
-            nn.ReLU(inplace=True)
-        )
-        self.conv = nn.Sequential(
-            nn.Conv2d(32, 32, 3, padding=1),
-            nn.ReLU(inplace=True)
-        )
-        self.outc = nn.Sequential(
-            nn.Conv2d(32, 3, 3, padding=1),
-            nn.ReLU(inplace=True)
-        )
+
+class RDB(nn.Module):
+    def __init__(self, nChannels, nDenselayer, growthRate):
+        super(RDB, self).__init__()
+        nChannels_ = nChannels
+        modules = []
+        for i in range(nDenselayer):
+            modules.append(make_dense(nChannels_, growthRate))
+            nChannels_ += growthRate
+        self.dense_layers = nn.Sequential(*modules)
+        self.conv_1x1 = nn.Conv2d(nChannels_, nChannels, kernel_size=1, padding=0, bias=False)
 
     def forward(self, x):
-        conv1 = self.inc(x)
-        conv2 = self.conv(conv1)
-        conv3 = self.conv(conv2)
-        conv4 = self.conv(conv3)
-        conv5 = self.outc(conv4)
-        return conv5
+        out = self.dense_layers(x)
+        out = self.conv_1x1(out)
+        out = out + x
+        return out
+
+class make_dense(nn.Module):
+    def __init__(self, nChannels, growthRate, kernel_size=3):
+        super(make_dense, self).__init__()
+        self.conv = nn.Conv2d(nChannels, growthRate, kernel_size=kernel_size, padding=(kernel_size - 1) // 2,
+                              bias=False)
+
+    def forward(self, x):
+        out = F.relu(self.conv(x))
+        out = torch.cat((x, out), 1)
+        return out
+
