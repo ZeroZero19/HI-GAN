@@ -7,7 +7,6 @@ import torch.nn.functional as F
 
 # Generator Net
 class GNet(nn.Module):
-    '''Residual in Residual Dense Block'''
 
     def __init__(self):
         super(GNet, self).__init__()
