@@ -6,7 +6,7 @@
 - CUDA         8.0 or 9.0
 
 ## Dataset
-1. Download train dataset from [Smartphone Image Denoising Dataset Medium Dataset[1]](ftp://sidd_user:sidd_2018@130.63.97.225/SIDD_Medium_Srgb.zip)
+1. Download train dataset from [Smartphone Image Denoising Dataset Medium Dataset[1]](https://www.eecs.yorku.ca/~kamel/sidd/dataset.php)
 2. Download test dataset from
 [The Darmstadt Noise Dataset (DND)[2]](https://noise.visinf.tu-darmstadt.de/), [SIDD Benchmark[1]](https://www.eecs.yorku.ca/~kamel/sidd/benchmark.php), [NAM[3]](http://snam.ml/research/ccnoise) ,[NC12[4]](http://demo.ipol.im/demo/125/)
 
