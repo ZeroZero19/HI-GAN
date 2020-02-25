@@ -6,10 +6,28 @@ import torch.nn.functional as F
 
 
 # Generator Net
-class GNet(nn.Module):
+class GsNet(nn.Module):
 
     def __init__(self):
-        super(GNet, self).__init__()
+        super(GsNet, self).__init__()
+        self.main = MainNet(in_nc=12, out_nc=12)
+        self.main2 = MainNet(in_nc=24, out_nc=24)
+        self.out = nn.Conv2d(24, 3, kernel_size=3, padding=1, bias=True)
+
+    def forward(self, x):
+        concat_x = torch.cat([x, torch.zeros_like(x), torch.zeros_like(x), torch.zeros_like(x)], dim=1)
+        out1 = self.main(concat_x) + concat_x
+
+        concat_out = torch.cat([concat_x, out1], dim=1)
+        out = self.main2(concat_out) + concat_out
+        out = self.out(out) + x
+
+        return out
+
+class GfNet(nn.Module):
+
+    def __init__(self):
+        super(GfNet, self).__init__()
         self.main = MainNet(in_nc=12, out_nc=12)
         self.main2 = MainNet(in_nc=24, out_nc=24)
         self.out = nn.Conv2d(24, 3, kernel_size=3, padding=1, bias=True)
@@ -25,10 +43,10 @@ class GNet(nn.Module):
         return out
 
 
-# Boost Net
-class BoostNet(nn.Module):
+# Gt
+class GtNet(nn.Module):
     def __init__(self, ):
-        super(BoostNet, self).__init__()
+        super(GtNet, self).__init__()
         self.main = MainNet(in_nc=6, out_nc=6)
         self.main2 = MainNet(in_nc=12, out_nc=12)
         self.main3 = MainNet(in_nc=24, out_nc=24)
@@ -49,6 +67,7 @@ class BoostNet(nn.Module):
 
 # Sub classes
 class MainNet(nn.Module):
+    """B-DenseUNets"""
     def __init__(self, in_nc=12, out_nc=12):
         super(MainNet, self).__init__()
         self.inc = nn.Sequential(
