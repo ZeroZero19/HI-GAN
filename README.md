@@ -25,10 +25,20 @@ A blind image denoising algorithm. In Image Processing On Line, vol. 5, pp. 1–
 ### 1. Test
 `python test.py`
 
-### 2. Optional
+Optional
 - `--inp` : input folder
 - `--out` : output folder
 - `--JPEG` : for JPEG images such as "NAM_20_rand_pathes" testset (don't use this argument with non-JPEG images such as "DND_20_rand_patches" testset)
+- `--nGpu` : number of GPU
+
+### 2. Demo cell
+`python demo_cell.py`
+
+Optional
+- `--inp-dir` : input image (select image on 'testsets/demo_cell' folder), default='testsets/demo_cell/FMD_test_mix/avg2/Confocal_BPAE_B_1.png'
+- `--out` : output folder
+- `--net` : choices=['N2N', 'DnCNN','UNet_ND', 'UNet_D', 'HI_GAN'], default='HI_GAN'
+- `--gray` : Gray image, default=True (Create RGB image from 3 gray image)
 - `--nGpu` : number of GPU
 
 #### 3. Sample results  
@@ -41,6 +51,8 @@ NC12
 <img src="images/NC12_1.png" width="100%" height="100%"> 
 SIDD
 <img src="images/SIDD.png" width="100%" height="100%"> 
+FMD
+<img src="images/HI_GAN_Confocal_BPAE_RGB_1.png" width="100%" height="100%"> 
 
 
 

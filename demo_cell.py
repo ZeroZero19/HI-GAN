@@ -37,7 +37,6 @@ parser.add_argument('--net', type=str, default='HI_GAN', choices=['N2N', 'DnCNN'
 parser.add_argument('--batch-size', default=1, type=int, help='test batch size')
 parser.add_argument('--inp-dir', default='testsets/demo_cell/FMD_test_mix/avg2/Confocal_BPAE_B_1.png', type=str, help='dir to dataset')
 parser.add_argument('--out-dir', default='results/demo_cell', type=str, help='dir to dataset')
-parser.add_argument('--image-types', type=str, default='FMD_test_mix', choices=['FMD_test_mix', 'our_data', 'None'])
 parser.add_argument('--no-cuda', action='store_true', default=False, help='use GPU or not, default using GPU')
 parser.add_argument('--save_img', action='store_true', default=True, help='save_noi_clean')
 parser.add_argument('--ground-truth', action='store_false', default=True, help='has clean img')
