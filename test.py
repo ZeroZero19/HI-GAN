@@ -24,27 +24,28 @@ ngpu = opt.nGPU
 device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
 
 # Create models
-Gs = GsNet().to(device)
-Gf = GfNet().to(device)
-Gt = GtNet().to(device)
+unetnd = UNet_ND().to(device)
+unetd = UNet_D().to(device)
+higan = HI_GAN().to(device)
 
 # Load models
 if opt.JPEG:
-    Gs_path = 'models/Gs-Net_JPEG.pth'
-    Gf_path = 'models/Gf-Net_JPEG.pth'
+    unetnd_path = 'models/unet_nd_jpeg.pth'
+    unetd_path = 'models/unet_d_jpeg.pth'
+    higan_path = 'models/hi_gan_jpeg.pth'
 else:
-    Gs_path = 'models/Gs-Net.pth'
-    Gf_path = 'models/Gf-Net.pth'
+    unetnd_path = 'models/unet_nd.pth'
+    unetd_path = 'models/unet_d.pth'
+    higan_path = 'models/hi_gan.pth'
 
-Boostnet_path = 'models/Gt-Net.pth'
 if (device.type == 'cuda') and (ngpu >= 1):
-    Gs = nn.DataParallel(Gs, list(range(ngpu)))
-    Gf = nn.DataParallel(Gf, list(range(ngpu)))
-    Gt = nn.DataParallel(Gt, list(range(ngpu)))
+    unetnd = nn.DataParallel(unetnd, list(range(ngpu)))
+    unetd = nn.DataParallel(unetd, list(range(ngpu)))
+    higan = nn.DataParallel(higan, list(range(ngpu)))
 
-Gs.load_state_dict(torch.load(Gs_path), strict=False)
-Gf.load_state_dict(torch.load(Gf_path), strict=False)
-Gt.load_state_dict(torch.load(Boostnet_path))
+unetnd.load_state_dict(torch.load(unetnd_path), strict=False)
+unetd.load_state_dict(torch.load(unetd_path), strict=False)
+higan.load_state_dict(torch.load(higan_path))
 
 # Denoise
 print('\n> Test set', opt.inp)
@@ -71,9 +72,9 @@ for i, item in enumerate(files):
     imorig = torch.Tensor(imorig).to(device)
 
     with torch.no_grad():
-        gt_dn = Gs(imorig)
-        gf_dn = Gf(imorig)
-        higan_dn = Gt(gf_dn, gt_dn)
+        gt_dn = unetnd(imorig)
+        gf_dn = unetd(imorig)
+        higan_dn = higan(gf_dn, gt_dn)
 
     # save by save_image
     save_img_dir = os.path.join(opt.out, img_folder)

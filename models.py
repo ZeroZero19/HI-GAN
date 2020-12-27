@@ -5,48 +5,44 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-# Generator Net
-class GsNet(nn.Module):
+# Denoise DND and NAM
+class UNet_ND(nn.Module):
 
     def __init__(self):
-        super(GsNet, self).__init__()
-        self.main = MainNet(in_nc=12, out_nc=12)
-        self.main2 = MainNet(in_nc=24, out_nc=24)
+        super(UNet_ND, self).__init__()
+        self.main = MainNet(in_nc=3, out_nc=12)
+        self.main2 = MainNet(in_nc=15, out_nc=24)
         self.out = nn.Conv2d(24, 3, kernel_size=3, padding=1, bias=True)
 
     def forward(self, x):
-        concat_x = torch.cat([x, torch.zeros_like(x), torch.zeros_like(x), torch.zeros_like(x)], dim=1)
-        out1 = self.main(concat_x) + concat_x
+        out1 = self.main(x)
+        out1[:,:3,:,:] = out1[:,:3,:,:] + x
+        out2 = self.main2(torch.cat([x, out1], dim=1))
+        out2[:, :3, :, :] = out2[:, :3, :, :] + x
+        out2[:, 12:, :, :] = out2[:, 12:, :, :] + out1
 
-        concat_out = torch.cat([concat_x, out1], dim=1)
-        out = self.main2(concat_out) + concat_out
-        out = self.out(out) + x
+        return self.out(out2) + x
 
-        return out
-
-class GfNet(nn.Module):
+class UNet_D(nn.Module):
 
     def __init__(self):
-        super(GfNet, self).__init__()
-        self.main = MainNet(in_nc=12, out_nc=12)
-        self.main2 = MainNet(in_nc=24, out_nc=24)
+        super(UNet_D, self).__init__()
+        self.main = MainNet(in_nc=3, out_nc=12)
+        self.main2 = MainNet(in_nc=15, out_nc=24)
         self.out = nn.Conv2d(24, 3, kernel_size=3, padding=1, bias=True)
 
     def forward(self, x):
-        concat_x = torch.cat([x, torch.zeros_like(x), torch.zeros_like(x), torch.zeros_like(x)], dim=1)
-        out1 = self.main(concat_x) + concat_x
+        out1 = self.main(x)
+        out1[:,:3,:,:] = out1[:,:3,:,:] + x
+        out2 = self.main2(torch.cat([x, out1], dim=1))
+        out2[:, :3, :, :] = out2[:, :3, :, :] + x
+        out2[:, 12:, :, :] = out2[:, 12:, :, :] + out1
 
-        concat_out = torch.cat([concat_x, out1], dim=1)
-        out = self.main2(concat_out) + concat_out
-        out = self.out(out) + x
+        return self.out(out2) + x
 
-        return out
-
-
-# Gt
-class GtNet(nn.Module):
+class HI_GAN(nn.Module):
     def __init__(self, ):
-        super(GtNet, self).__init__()
+        super(HI_GAN, self).__init__()
         self.main = MainNet(in_nc=6, out_nc=6)
         self.main2 = MainNet(in_nc=12, out_nc=12)
         self.main3 = MainNet(in_nc=24, out_nc=24)
@@ -64,8 +60,59 @@ class GtNet(nn.Module):
         out = 0.2 * self.out(out3) + 0.5 * unet_nd_dn + 0.5 * unet_d_dn
         return out
 
+# Denoise Cell
+class UNet_ND_cell(nn.Module):
 
-# Sub classes
+    def __init__(self):
+        super(UNet_ND_cell, self).__init__()
+        self.main = MainNet(in_nc=1, out_nc=1)
+        self.main2 = MainNet(in_nc=2, out_nc=2)
+        self.out = nn.Conv2d(4, 1, kernel_size=3, padding=1, bias=True)
+
+    def forward(self, x):
+        out1 = self.main(x) + x
+        cat1 = torch.cat([x, out1], dim=1)
+        out2 = self.main2(cat1) + cat1
+        cat2 = torch.cat([x,out1, out2], dim=1)
+        return self.out(cat2) + x
+
+class UNet_D_cell(nn.Module):
+
+    def __init__(self):
+        super(UNet_D_cell, self).__init__()
+        self.main = MainNet(in_nc=1, out_nc=1)
+        self.main2 = MainNet(in_nc=2, out_nc=2)
+        self.out = nn.Conv2d(4, 1, kernel_size=3, padding=1, bias=True)
+
+    def forward(self, x):
+        out1 = self.main(x) + x
+        cat1 = torch.cat([x, out1], dim=1)
+        out2 = self.main2(cat1) + cat1
+        cat2 = torch.cat([x,out1, out2], dim=1)
+        return self.out(cat2) + x
+
+class HI_GAN_cell(nn.Module):
+    def __init__(self, ):
+        super(HI_GAN_cell, self).__init__()
+        self.main = MainNet(in_nc=2, out_nc=2)
+        self.main2 = MainNet(in_nc=4, out_nc=4)
+        self.main3 = MainNet(in_nc=8, out_nc=8)
+        self.out = nn.Conv2d(8, 1, kernel_size=3, padding=1, bias=True)
+    def forward(self, unet_nd_dn, unet_d_dn):
+        cat1 = torch.cat([unet_nd_dn, unet_d_dn], dim=1)
+        out1 = 0.2*self.main(cat1) + cat1
+
+        cat2 = torch.cat([cat1, out1], dim=1)
+        out2 = 0.2*self.main2(cat2) + cat2
+
+        cat3 = torch.cat([cat2, out2], dim=1)
+        out3 = 0.2*self.main3(cat3) + cat3
+
+        out = 0.2 * self.out(out3) + 0.5 * unet_nd_dn + 0.5 * unet_d_dn
+        return out
+
+
+## Sub classes
 class MainNet(nn.Module):
     """B-DenseUNets"""
     def __init__(self, in_nc=12, out_nc=12):
