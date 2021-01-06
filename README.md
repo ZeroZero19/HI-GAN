@@ -23,7 +23,7 @@ A blind image denoising algorithm. In Image Processing On Line, vol. 5, pp. 1–
 
 ## Usage
 ### 1. Test
-`python test.py`
+`python test_dnd_nam.py`
 
 Optional
 - `--inp` : input folder
