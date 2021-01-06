@@ -35,7 +35,7 @@ Optional
 `python demo_cell.py`
 
 Optional
-- `--inp-dir` : input image (select image on 'testsets/demo_cell' folder), default='testsets/demo_cell/FMD_test_mix/avg2/Confocal_BPAE_B_1.png'
+- `--inp-dir` : input image (select image on 'testsets/cell/demo' folder), default='testsets/cell/demo/avg2/Confocal_BPAE_B_4.png'
 - `--out` : output folder
 - `--net` : choices=['N2N', 'DnCNN','UNet_ND', 'UNet_D', 'HI_GAN'], default='HI_GAN'
 - `--gray` : Gray image, default=True (Create RGB image from 3 gray images)
