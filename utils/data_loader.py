@@ -158,7 +158,7 @@ class DenoisingTestMixFolder(torch.utils.data.Dataset):
     def _gather_files(self):
         samples = []
         root_dir = os.path.expanduser(self.root)
-        test_mix_dir = os.path.join(root_dir, 'FMD_test_mix')
+        test_mix_dir = os.path.join(root_dir, 'fmd_test_mix')
         gt_dir = os.path.join(test_mix_dir, 'gt')
 
         for noise_level in self.noise_levels:
@@ -191,9 +191,9 @@ class DenoisingTestMixFolder(torch.utils.data.Dataset):
         if self.target_transform is not None:
             clean = self.target_transform(clean)
 
-        name = os.path.basename(self.samples[index][0])
+        path = self.samples[index][0]
 
-        return noisy, clean, name
+        return noisy, clean, path
 
     def __len__(self):
         return len(self.samples)
@@ -293,9 +293,9 @@ class DenoisingTestMixFolder_flyv2(torch.utils.data.Dataset):
         if self.target_transform is not None:
             clean = self.target_transform(clean)
 
-        name = os.path.basename(self.samples[index][0])
+        path = self.samples[index][0]
 
-        return noisy, clean, name
+        return noisy, clean, path
 
     def __len__(self):
         return len(self.samples)
@@ -329,69 +329,3 @@ def load_denoising_test_mix_flyv2(root, batch_size, noise_levels, loader=pil_loa
                                               shuffle=False, drop_last=False, **kwargs)
 
     return data_loader
-
-
-
-
-
-if __name__ == '__main__':
-    root = 'path/to/denoising/dataset'
-    loader = pil_loader
-    train = True
-    noise_levels = [1, 2, 4]
-    types = ['TwoPhoton_MICE']
-    # types = None
-    captures = 10
-    patch_size = 128
-    batch_size = 16
-    transform = None
-    target_transform = None
-    test_fov = 19
-    tic = time()
-    # dataset = DenoisingFolder(root, train, noise_levels, types=types, test_fov=19,
-    #     captures=2, transform=None, target_transform=None, loader=pil_loader)
-    # print(time()-tic)
-    # print(dataset.samples[0])
-    # print(dataset[0])
-    kwargs = {'drop_last': False}
-    add_kwargs = {'num_workers': 4, 'pin_memory': True} \
-        if torch.cuda.is_available() else {}
-    kwargs.update(add_kwargs)
-
-    loader = load_denoising(root, train, batch_size, noise_levels=noise_levels,
-                            types=types, captures=captures, patch_size=patch_size, transform=transform,
-                            target_transform=target_transform, loader=pil_loader, test_fov=test_fov)
-
-    for batch_size, (noisy, clean) in enumerate(loader):
-        print(noisy.shape)
-        print(clean.shape)
-        break
-
-    transform = transforms.Compose([
-        transforms.FiveCrop(patch_size),
-        transforms.Lambda(lambda crops: torch.stack([
-            fluore_to_tensor(crop) for crop in crops])),
-        transforms.Lambda(lambda x: x.float().div(255).sub(0.5))
-    ])
-
-    test_loader = load_denoising_test_mix(root, batch_size=32, noise_levels=noise_levels,
-                                          loader=pil_loader, transform=transform, patch_size=patch_size)
-
-    print(len(test_loader.dataset))
-    print(test_loader.dataset.samples[0])
-
-    for batch_size, (noisy, clean) in enumerate(test_loader):
-        print(noisy.shape)
-        print(clean.shape)
-        break
-
-    train_loader = load_denoising(root, batch_size, noise_levels, types=None,
-                                            patch_size=256, transform=transform, target_transform=transform,
-                                            loader=pil_loader,
-                                            test_fov=19)
-
-    for batch_size, (noisy_input, noisy_target, clean) in enumerate(train_loader):
-        print(noisy_input.shape)
-        print(noisy_target.shape)
-        print(clean.shape)
-        break

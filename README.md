@@ -38,10 +38,13 @@ Optional
 - `--inp-dir` : input image (select image on 'testsets/demo_cell' folder), default='testsets/demo_cell/FMD_test_mix/avg2/Confocal_BPAE_B_1.png'
 - `--out` : output folder
 - `--net` : choices=['N2N', 'DnCNN','UNet_ND', 'UNet_D', 'HI_GAN'], default='HI_GAN'
-- `--gray` : Gray image, default=True (Create RGB image from 3 gray image)
+- `--gray` : Gray image, default=True (Create RGB image from 3 gray images)
 - `--nGpu` : number of GPU
 
-#### 3. Sample results  
+### 3. Test cell (Reproduce test example in the paper)
+`python test_cell.py`
+
+#### 4. Sample results  
 DND 
 <img src="images/DND.png" width="100%" height="100%">  
 <img src="images/DND2.png" width="100%" height="100%">  

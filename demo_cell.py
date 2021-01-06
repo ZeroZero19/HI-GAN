@@ -35,8 +35,8 @@ parser = argparse.ArgumentParser()
 # parser.add_argument('-m', '--model', default='models/cell/hi_gan.pth', type=str, help='the model')
 parser.add_argument('--net', type=str, default='HI_GAN', choices=['N2N', 'DnCNN','UNet_ND', 'UNet_D', 'HI_GAN'])
 parser.add_argument('--batch-size', default=1, type=int, help='test batch size')
-parser.add_argument('--inp-dir', default='testsets/demo_cell/FMD_test_mix/avg2/Confocal_BPAE_B_1.png', type=str, help='dir to dataset')
-parser.add_argument('--out-dir', default='results/demo_cell', type=str, help='dir to dataset')
+parser.add_argument('--inp-dir', default='testsets/cell/demo/avg2/Confocal_BPAE_B_4.png', type=str, help='dir to dataset')
+parser.add_argument('--out-dir', default='results/cell/demo', type=str, help='dir to dataset')
 parser.add_argument('--no-cuda', action='store_true', default=False, help='use GPU or not, default using GPU')
 parser.add_argument('--save_img', action='store_true', default=True, help='save_noi_clean')
 parser.add_argument('--ground-truth', action='store_false', default=True, help='has clean img')
@@ -49,7 +49,6 @@ test_batch_size = opt.batch_size
 cmap = 'inferno'
 device = 'cpu' if opt.no_cuda else 'cuda'
 
-image_types = [opt.image_types]
 out_dir = opt.out_dir
 mkdirs(out_dir)
 
@@ -104,27 +103,8 @@ four_crop = transforms.Compose([
     ])
 
 if not opt.gray:
-    if 'FMD_test_mix' in opt.inp_dir:
-        if '_R_' in opt.inp_dir:
-            noisy_r_path = opt.inp_dir
-            noisy_g_path = opt.inp_dir.replace('_R_', '_G_')
-            noisy_b_path = opt.inp_dir.replace('_R_', '_B_')
-        elif '_G_' in opt.inp_dir:
-            noisy_r_path = opt.inp_dir.replace('_G_', '_R_')
-            noisy_g_path = opt.inp_dir
-            noisy_b_path = opt.inp_dir.replace('_G_', '_B_')
-        elif '_B_' in opt.inp_dir:
-            noisy_r_path = opt.inp_dir.replace('_B_', '_R_')
-            noisy_g_path = opt.inp_dir.replace('_B_', '_G_')
-            noisy_b_path = opt.inp_dir
-        else:
-            print('Error: Please use RGB image')
-        if opt.ground_truth:
-            lv = noisy_r_path.split('/')[-2]
-            clean_r = four_crop(pil_loader(noisy_r_path.replace(lv, 'gt'))).to(device)
-            clean_g = four_crop(pil_loader(noisy_g_path.replace(lv, 'gt'))).to(device)
-            clean_b = four_crop(pil_loader(noisy_b_path.replace(lv, 'gt'))).to(device)
-    elif 'our_data' in opt.inp_dir:
+
+    if 'Red_' in opt.inp_dir or 'Green_' in opt.inp_dir or 'Magenta_' in opt.inp_dir:
         if 'Red_' in opt.inp_dir:
             noisy_r_path = opt.inp_dir
             noisy_g_path = opt.inp_dir.replace('Red_', 'Green_')
@@ -138,13 +118,33 @@ if not opt.gray:
             noisy_g_path = opt.inp_dir.replace('Magenta_', 'Green_')
             noisy_b_path = opt.inp_dir
         else:
-            print('Error: Please use RGB image')
+            print('Error: Please use RGB image or set gray mode')
         if opt.ground_truth:
             lv = noisy_r_path.split('/')[-2]
             avg = noisy_r_path.split('_')[-1]
             clean_r = four_crop(pil_loader(noisy_r_path.replace(lv, 'gt').replace(avg, 'Average.png'))).to(device)
             clean_g = four_crop(pil_loader(noisy_g_path.replace(lv, 'gt').replace(avg, 'Average.png'))).to(device)
             clean_b = four_crop(pil_loader(noisy_b_path.replace(lv, 'gt').replace(avg, 'Average.png'))).to(device)
+    else:
+        if '_R_' in opt.inp_dir:
+            noisy_r_path = opt.inp_dir
+            noisy_g_path = opt.inp_dir.replace('_R_', '_G_')
+            noisy_b_path = opt.inp_dir.replace('_R_', '_B_')
+        elif '_G_' in opt.inp_dir:
+            noisy_r_path = opt.inp_dir.replace('_G_', '_R_')
+            noisy_g_path = opt.inp_dir
+            noisy_b_path = opt.inp_dir.replace('_G_', '_B_')
+        elif '_B_' in opt.inp_dir:
+            noisy_r_path = opt.inp_dir.replace('_B_', '_R_')
+            noisy_g_path = opt.inp_dir.replace('_B_', '_G_')
+            noisy_b_path = opt.inp_dir
+        else:
+            print('Error: Please use RGB image or set gray mode')
+        if opt.ground_truth:
+            lv = noisy_r_path.split('/')[-2]
+            clean_r = four_crop(pil_loader(noisy_r_path.replace(lv, 'gt'))).to(device)
+            clean_g = four_crop(pil_loader(noisy_g_path.replace(lv, 'gt'))).to(device)
+            clean_b = four_crop(pil_loader(noisy_b_path.replace(lv, 'gt'))).to(device)
 
     noisy_r = four_crop(pil_loader(noisy_r_path)).to(device)
     noisy_g = four_crop(pil_loader(noisy_g_path)).to(device)
@@ -218,11 +218,12 @@ else:
 
     if opt.ground_truth:
         lv = opt.inp_dir.split('/')[-2]
-        if 'FMD_test_mix' in opt.inp_dir:
-            clean = four_crop(pil_loader(opt.inp_dir.replace(lv, 'gt'))).to(device)
-        elif 'our_data' in opt.inp_dir:
+
+        if 'Red_' in opt.inp_dir or 'Green_' in opt.inp_dir or 'Magenta_' in opt.inp_dir:
             avg = opt.inp_dir.split('_')[-1]
             clean = four_crop(pil_loader(opt.inp_dir.replace(lv, 'gt').replace(avg, 'Average.png'))).to(device)
+        else:
+            clean = four_crop(pil_loader(opt.inp_dir.replace(lv, 'gt'))).to(device)
         psnr_noi = cal_psnr(clean, noisy).sum().item() / multiplier
         ssim_noi = cal_ssim(clean, noisy).sum() / multiplier
 
